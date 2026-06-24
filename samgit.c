@@ -34,6 +34,26 @@ int init(){ //creares the folders i need and whatnot
     return 0;
 }
 
+int add(const char *filepath) {
+    // Step 1: open and read the file into a buffer
+    // hint: fopen, fseek, ftell, rewind, fread, malloc
+
+    // Step 2: build the blob header "blob {size}\0"
+    // hint: sprintf for the header, malloc for the full buffer
+    // hint: use memcpy not strcpy — there's a null byte in the middle
+
+    // Step 3: SHA-1 hash the full buffer
+    // hint: SHA1(data, length, hash_output)
+    // SHA1 gives you 20 raw bytes — convert to hex string with a loop
+
+    // Step 4: build the object path
+    // first 2 hex chars = folder, rest = filename
+    // .samgit/objects/ab/cdef1234...
+
+    // Step 5: create the folder and write compressed content
+    // hint: compress() from zlib, then fwrite
+}
+
 int main(int argc, char *argv[]){
     if(argc<2){
         printf("Usage: %s <command>\n", argv[0]);
