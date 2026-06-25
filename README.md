@@ -1,6 +1,6 @@
 <table><tr>
-<td><img src="./30projects_logo.svg copy" width="360"/></td>
-<td><h1>Day 10/30 — Git Recreation</h1></td>
+<td><img src="./15projects_logo.svg copy" width="360"/></td>
+<td><h1>Day 10/15 — Git Recreation</h1></td>
 </tr></table>
 
 ## Installation (Windows)
