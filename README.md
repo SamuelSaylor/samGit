@@ -67,4 +67,8 @@ You should see `-lssl -lcrypto` and `-lz` respectively.
 
 ## Credits
 
-["Write yourself a Git!"](https://wyag.thb.lt/) by Thibault Polge is a Python based tutorial on writing your own Git, and hence it played a significant role in understanding how each Git function works.
+**["Write yourself a Git!"](https://wyag.thb.lt/)** by Thibault Polge - A Python based tutorial on writing your own Git, and hence it played a significant role in understanding how each Git function works.
+
+**OpenSSL** - SHA-1 hashing via `<openssl/sha.h>` (https://www.openssl.org)
+
+**zlib** - Object compression via `<zlib.h>` (https://zlib.net)
