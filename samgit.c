@@ -35,8 +35,38 @@ int init(){ //creares the folders i need and whatnot
 }
 
 int add(const char *filepath) {
-    // Step 1: open and read the file into a buffer
-    // hint: fopen, fseek, ftell, rewind, fread, malloc
+    /////////////////////////////////////////////////////////
+    //putting file into the buffer
+    FILE *file = fopen(filepath,"rb");
+    if(file == NULL){fprintf(stderr,"Error opening file %s",filepath);return 1;}
+
+    //grabbing file size
+    fseek(file,0,SEEK_END);
+    long fileSize = ftell(file); //sorry about all the comments but im teaching myself- essentially ftell actually assigns the cursor to the final byte which fseek got.
+
+    if(fileSize<0){
+        fprintf(stderr,"Error determining file size: %s",filepath);
+        fclose(file);
+        return 1;
+    }
+    rewind(file); //and then this should ove the poitner back tothe beginning.
+
+    char *buffer = (char*)malloc(fileSize+1);
+    if(buffer == NULL){
+        fprintf(stderr,"Memory allocation failed: %s",filepath);
+        fclose(file);
+        return 1;
+    }
+
+    size_t bytesInBuffer = fread(buffer,1,fileSize,file);
+    if((bytesInBuffer<(size_t)fileSize)&&ferror(file)){
+        fprintf(stderr,"Error reading file %s",filepath);
+        free(buffer);
+        fclose(file);
+        return 1;
+    }
+    buffer[bytesInBuffer] = '\0'; //adding a null temrinator
+    /////////////////////////////////////////////////////////
 
     // Step 2: build the blob header "blob {size}\0"
     // hint: sprintf for the header, malloc for the full buffer

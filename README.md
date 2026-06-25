@@ -1,6 +1,6 @@
 <table><tr>
 <td><img src="./15projects_logo copy.svg" width="360"/></td>
-<td><h1>Day 10/15 — Git Recreation</h1></td>
+<td><h1>Day 10/15 — samGit</h1></td>
 </tr></table>
 
 ## Installation (Windows)
@@ -64,3 +64,7 @@ You should see `-lssl -lcrypto` and `-lz` respectively.
 
 ### Compile
 `gcc git.c -o mygit -lssl -lcrypto -lz`
+
+## Credits
+
+["Write yourself a Git!"](https://wyag.thb.lt/) by Thibault Polge is a Python based tutorial on writing your own Git, and hence it played a significant role in understanding how each Git function works.
