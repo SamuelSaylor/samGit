@@ -138,6 +138,11 @@ int main(int argc, char *argv[]){
 
     if(strcmp(argv[1],"init")==0){return init();}
 
+    if(strcmp(argv[1],"add")==0){
+        if(argc < 3){ fprintf(stderr,"Usage: %s add <file>\n", argv[0]); return 1; }
+        return add(argv[2]);
+    }
+
     printf("Unkown command: %s\n",argv[1]);
     return 0;
 }
