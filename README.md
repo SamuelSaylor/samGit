@@ -3,6 +3,14 @@
 <td><h1>Day 10/15 — samGit</h1></td>
 </tr></table>
 
+## Introduction
+
+samGit is a recreation of Git done by myself to understand how Git functions while also being another C-based project after I started learning the language. At the moment it only has three functions, init, add, and commit, which makes it technically functional!
+
+Do I expect anyone ever to make samGit a replacement to Git? Absolutely not! I will also continue to use Git itself, as it is a perfect creation, but then again what's the point in using a tool if you don't undersand how it works? For somebody whose only been using C for about a month, it's been pretty fun to work on this project, albeit stressful at times as even though I have a reference for how each function works, I still have to learn a lot about the intricacies of how C functions. 
+
+I think I'm ready for my Programming in C class next semester, as that is meant to be when I learn what C is. 😂
+
 ## Installation (Windows)
 
 ### Prerequisites
