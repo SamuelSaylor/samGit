@@ -5,11 +5,23 @@
 
 ## Introduction
 
-samGit is a recreation of Git done by myself to understand how Git functions while also being another C-based project after I started learning the language. At the moment it only has three functions, init, add, and commit, which makes it technically functional!
+samGit is a recreation of Git done by myself to understand how Git functions while also being another C-based project after I started learning the language. At the moment it only has three functions, init, add, and commit, which makes it technically functional! It's also locally hosted, so no you cannot use it to push changes to Github.
+
+Everything here is compressed to a zlib object, stored in .samgit/objects/, identified by the SHA-1 hash of its contents. The same content will always produce the same hash, so repeat files won't need to be stored twice and whatnot.
 
 Do I expect anyone ever to make samGit a replacement to Git? Absolutely not! I will also continue to use Git itself, as it is a perfect creation, but then again what's the point in using a tool if you don't undersand how it works? For somebody whose only been using C for about a month, it's been pretty fun to work on this project, albeit stressful at times as even though I have a reference for how each function works, I still have to learn a lot about the intricacies of how C functions. 
 
 I think I'm ready for my Programming in C class next semester, as that is meant to be when I learn what C is. 😂
+
+## Usage
+
+Ensure you have followed compilation instructions below. This is how you'd use it with GCC, so if you have a seperate compiler ask Claude or something, or just figure it out yourself.
+
+```./samgit init``` - Initializes your repository.
+```./samgit add <filename>``` - Adds a file to path.
+```./samgit commit "Message"``` - Commit, with a message.
+
+At the moment if you wish to decrypt the hexadecimal messages, you're going to have to do that yourself with SHA-1. I should fix that in the near future.
 
 ## Installation (Windows)
 
@@ -35,16 +47,14 @@ You should see `-lssl -lcrypto` and `-lz` respectively.
 
 ### Step 4 — Compile
 
-`gcc git.c -o mygit -lssl -lcrypto -lz -lgdi32 -lws2_32`
+`gcc git.c -o samgit -lssl -lcrypto -lz -lgdi32 -lws2_32`
 
 ### Step 5 — Run
-`./mygit init`
+`./samgit init`
 
-`./mygit add <filename>`
+`./samgit add <filename>`
 
-`./mygit commit "<message>"`
-
-`./mygit log`
+`./samgit commit "<message>"`
 
 ---
 
@@ -57,7 +67,7 @@ You should see `-lssl -lcrypto` and `-lz` respectively.
 `brew install openssl zlib`
 
 ### Step 3 — Compile
-`gcc git.c -o mygit -lssl -lcrypto -lz`
+`gcc git.c -o samgit -lssl -lcrypto -lz`
 
 ---
 
@@ -71,7 +81,7 @@ You should see `-lssl -lcrypto` and `-lz` respectively.
 `sudo pacman -S openssl zlib`
 
 ### Compile
-`gcc git.c -o mygit -lssl -lcrypto -lz`
+`gcc git.c -o samgit -lssl -lcrypto -lz`
 
 ## Credits
 
