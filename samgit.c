@@ -38,6 +38,7 @@ int init(){ //creares the folders i need and whatnot
     fprintf(head, "ref: refs/heads/main\n");
     fclose(head);
 
+    printf("Initialized.");
     return 0;
 }
 
@@ -306,7 +307,9 @@ int main(int argc, char *argv[]){
         return 1;
     }
 
-    if(strcmp(argv[1],"init")==0){return init();}
+    if(strcmp(argv[1],"init")==0){
+        return init();
+    }
 
     if(strcmp(argv[1],"add")==0){
         if(argc < 3){fprintf(stderr,"Usage: %s add <file>\n", argv[0]); return 1;}
@@ -314,7 +317,7 @@ int main(int argc, char *argv[]){
     }
 
     if(strcmp(argv[1],"commit")==0){
-        if(argc<3){fprint(stderr,"Usage: %s commit \"<message>\"\n",argv[0]);return 1;}
+        if(argc<3){fprintf(stderr,"Usage: %s commit \"<message>\"\n",argv[0]);return 1;}
         return commit(argv[2]);
     }
 
