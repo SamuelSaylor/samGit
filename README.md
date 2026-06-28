@@ -7,7 +7,15 @@
 
 samGit is a recreation of Git done by myself to understand how Git functions while also being another C-based project after I started learning the language. At the moment it only has three functions, init, add, and commit, which makes it technically functional! It's also locally hosted, so no you cannot use it to push changes to Github.
 
-Everything here is compressed to a zlib object, stored in .samgit/objects/, identified by the SHA-1 hash of its contents. The same content will always produce the same hash, so repeat files won't need to be stored twice and whatnot.
+Everything here is compressed to a zlib object, stored in .samgit/objects/, identified by the SHA-1 hash of its contents. The same content will always produce the same hash, so repeat files won't need to be stored twice and whatnot. If you want to see a completed run, check inside `samGit/Example of a full repository/`. The following instructions were ran:
+
+```
+gcc samgit.c -o samgit -lssl -lcrypto -lz -lgdi32 -lws2_32
+./samgit init
+echo "Test" > test.txt
+./samgit add test.txt
+./samgit commit "Test successful!"
+```
 
 Do I expect anyone ever to make samGit a replacement to Git? Absolutely not! I will also continue to use Git itself, as it is a perfect creation, but then again what's the point in using a tool if you don't undersand how it works? For somebody whose only been using C for about a month, it's been pretty fun to work on this project, albeit stressful at times as even though I have a reference for how each function works, I still have to learn a lot about the intricacies of how C functions. 
 
