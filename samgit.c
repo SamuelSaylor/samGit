@@ -15,6 +15,9 @@
 
 //prereqs above ^^
 
+#define maximum_hashes 100 //change to be number of files that commit will read
+#define maximum_files 100 //change for filenames in commit
+
 int init(){ //creares the folders i need and whatnot
     const char *samgit = ".samgit";
     const char *objects = ".samgit/objects";
@@ -132,6 +135,94 @@ int add(const char *filepath) {
     printf("File added.");
 
     return 0;
+}
+
+int commit(const char *message){
+    char line[512];
+    char hashes[maximum_hashes][41];
+    char filenames[maximum_files][256];
+    int file_cnt = 0;
+
+    FILE *index = fopen(".samgit/index","r");
+    if(index == NULL){fprintf(stderr, "Nothing staged, make sure you run add first.");return 1;}
+
+    while(fgets(line,sizeof(line),index)){
+        sscanf(line, "%40s %255s", hashes[file_cnt],filenames[file_cnt]);
+        //%40s means parse the string line, which has a maximmum of 40 characters
+        //%255s means the secondword of hashes is 255 characters max.
+        //note to self, keepin mind the 41 and 256 is because of the null pointer
+        file_cnt++;
+    }
+
+    fclose(index);
+
+    size_t tree_size = 0;
+    //each entry is 100644 (unix mode) + filename + null term + 20 raw bytes
+    for(int i = 0; i < file_cnt; i++){tree_size+=7+strlen(filenames[i])+21;}//20, plus 1 cuz null temrinator
+    
+    char *tree_body = malloc(tree_size);
+    if(tree_body == NULL){fprintf(stderr,"Error handling tree body size."); return 1;}
+
+    size_t offset = 0;
+    for(int i = 0; i < file_cnt; i++){
+        memcpy(tree_body+offset,"100644 ",7);
+        offset+=7;
+
+        size_t len = strlen(filenames[i]);
+        memcpy(tree_body + offset, filenames[i], len);
+        offset += len;
+        tree_body[offset]='\0';
+        offset++;
+
+        // convert hex string back to 20 raw bytes
+        unsigned char raw_hash[20];
+        for(int j = 0; j < 20; j++){sscanf(hashes[i]+j*2,"%02x",(unsigned int*)&raw_hash[j]);}
+        memcpy(tree_body+offset,raw_hash,20);
+        offset+=20;
+    }
+
+    char tree_header[64];
+    int header_size = sprintf(tree_header, "tree %zu", tree_size) + 1;
+    size_t total_size = tree_size+header_size;
+
+    char *totalsize = malloc(total_size);
+
+    if(totalsize == NULL){
+        fprintf(stderr,"Memory allocation failed");
+        return 1;
+    }
+
+    memcpy(totalsize,tree_header,header_size);
+    memcpy(totalsize + header_size, tree_body, tree_size);
+
+    unsigned char hash[SHA_DIGEST_LENGTH];
+    SHA1((unsigned char*)totalsize,total_size,hash);
+
+    char hex[41];
+    for(int i = 0; i<SHA_DIGEST_LENGTH;i++){sprintf(hex+i*2,"%02x",hash[i]);}
+    hex[40] = '\0';
+
+    char folder[3]; 
+    char filename[39];
+
+    strncpy(folder,hex,2); folder[2] = '\0';
+    strncpy(filename,hex+2,38); filename[38] = '\0';
+
+    char folder_Path[256];
+    char object_path[256];
+
+    sprintf(folder_Path,".samgit/objects/%s",folder);
+    sprintf(object_path,".samgit/objects/%s/%s",folder,filename);
+
+    create_folder(folder_Path);
+
+    uLongf compressed_size = compressBound(total_size);
+    char *compressed = malloc(compressed_size);
+    compress((Bytef*)compressed, &compressed_size, (Bytef*)totalsize, total_size);
+
+    FILE *ret = fopen(object_path,"wb");
+    fwrite(compressed,1,compressed_size,ret);
+    fclose(ret);
 }
 
 int main(int argc, char *argv[]){
