@@ -3,6 +3,7 @@
 #include <string.h>
 #include <openssl/sha.h>
 #include <zlib.h>
+#include <time.h>
 
 #ifdef _WIN32
     #include <direct.h>
@@ -15,9 +16,12 @@
 
 //prereqs above ^^
 
+#define EMAIL "email.com"
+#define USERNAME "username"
+
 #define maximum_hashes 100 //change to be number of files that commit will read
 #define maximum_files 100 //change for filenames in commit
-
+#define commit_message_size 1000 //change for size of your commit messages
 int init(){ //creares the folders i need and whatnot
     const char *samgit = ".samgit";
     const char *objects = ".samgit/objects";
@@ -223,6 +227,25 @@ int commit(const char *message){
     FILE *ret = fopen(object_path,"wb");
     fwrite(compressed,1,compressed_size,ret);
     fclose(ret);
+
+    FILE *samgitmain = fopen(".samgit/refs/heads/main","r");
+    char parenthash[41];
+    if(samgitmain==NULL){parenthash[0] = '\0';}
+    else{
+        fgets(parenthash,41,samgitmain);
+        parenthash[strcspn(parenthash,"\n")]='\0';
+        fclose(samgitmain);
+    }
+    
+    char commit_content[1024];
+    time_t timestamp = time(NULL);
+
+    if(parenthash[0] != '\0'){
+        sprintf(commit_content,"tree %s\nparent %s\nauthor %s <%s> %ld +0000\ncommitter %s <%s> %ld +0000\n\n%s\n",hex, parenthash, USERNAME, EMAIL, timestamp, USERNAME, EMAIL, timestamp, message);
+    } else {
+        sprintf(commit_content,"tree %s\nauthor %s <%s> %ld +0000\ncommitter %s <%s> %ld +0000\n\n%s\n",hex, USERNAME, EMAIL, timestamp, USERNAME, EMAIL, timestamp, message);}
+
+    
 }
 
 int main(int argc, char *argv[]){
