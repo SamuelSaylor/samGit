@@ -121,6 +121,10 @@ int add(const char *filepath) {
     fwrite(compressed,1,compressed_size,ret);
     fclose(ret);
     
+    FILE *index = fopen(".samgit/index", "a");
+    fprintf(index, "%s %s\n", hex, filepath);
+    fclose(index);
+
     free(buffer);
     free(totalsize);
     free(compressed);
