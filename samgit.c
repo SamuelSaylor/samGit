@@ -246,6 +246,58 @@ int commit(const char *message){
         sprintf(commit_content,"tree %s\nauthor %s <%s> %ld +0000\ncommitter %s <%s> %ld +0000\n\n%s\n",hex, USERNAME, EMAIL, timestamp, USERNAME, EMAIL, timestamp, message);}
 
     
+    size_t commit_size = strlen(commit_content); //reusing code again lol
+    char commit_header[64];
+    int commit_header_size = sprintf(commit_header, "commit %zu", commit_size) + 1;
+    size_t commit_total_size = commit_size + commit_header_size;
+
+    char *commit_total = malloc(commit_total_size);
+    if(commit_total == NULL){ fprintf(stderr, "Memory allocation failed\n"); return 1; }
+
+    memcpy(commit_total, commit_header, commit_header_size);
+    memcpy(commit_total + commit_header_size, commit_content, commit_size);
+
+    unsigned char commit_hash[SHA_DIGEST_LENGTH];
+    SHA1((unsigned char*)commit_total, commit_total_size, commit_hash);
+
+    char commit_hex[41];
+    for(int i = 0; i < SHA_DIGEST_LENGTH; i++){sprintf(commit_hex + i*2, "%02x", commit_hash[i]);}
+    commit_hex[40] = '\0';
+
+    char commit_folder[3];
+    char commit_filename[39];
+
+    strncpy(commit_folder, commit_hex, 2); commit_folder[2] = '\0';
+    strncpy(commit_filename, commit_hex + 2, 38); commit_filename[38] = '\0';
+
+    char commit_folder_path[256];
+    char commit_object_path[256];
+
+    sprintf(commit_folder_path, ".samgit/objects/%s", commit_folder);
+    sprintf(commit_object_path, ".samgit/objects/%s/%s", commit_folder, commit_filename);
+
+    create_folder(commit_folder_path);
+
+    uLongf commit_compressed_size = compressBound(commit_total_size);
+    char *commit_compressed = malloc(commit_compressed_size);
+    compress((Bytef*)commit_compressed, &commit_compressed_size, (Bytef*)commit_total, commit_total_size);
+
+    FILE *commit_file = fopen(commit_object_path, "wb");
+    fwrite(commit_compressed, 1, commit_compressed_size, commit_file);
+    fclose(commit_file);
+
+    free(commit_total);
+    free(commit_compressed);
+
+    FILE *update_head = fopen(".samgit/refs/heads/main", "w");
+    fprintf(update_head, "%s\n", commit_hex);
+    fclose(update_head);
+
+    FILE *clear_index = fopen(".samgit/index", "w");
+    fclose(clear_index);
+
+    printf("commit %s\n", commit_hex);
+    return 0;
 }
 
 int main(int argc, char *argv[]){
@@ -257,8 +309,13 @@ int main(int argc, char *argv[]){
     if(strcmp(argv[1],"init")==0){return init();}
 
     if(strcmp(argv[1],"add")==0){
-        if(argc < 3){ fprintf(stderr,"Usage: %s add <file>\n", argv[0]); return 1; }
+        if(argc < 3){fprintf(stderr,"Usage: %s add <file>\n", argv[0]); return 1;}
         return add(argv[2]);
+    }
+
+    if(strcmp(argv[1],"commit")==0){
+        if(argc<3){fprint(stderr,"Usage: %s commit \"<message>\"\n",argv[0]);return 1;}
+        return commit(argv[2]);
     }
 
     printf("Unkown command: %s\n",argv[1]);
