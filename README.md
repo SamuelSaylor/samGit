@@ -1,6 +1,6 @@
 <table><tr>
-<td><img src="./15projects_logo copy.svg" width="360"/></td>
-<td><h1>Day 10/15 — samGit</h1></td>
+<td><img src="./10projects_logo copy.svg" width="360"/></td>
+<td><h1>Day 10/10 — samGit</h1></td>
 </tr></table>
 
 ## Introduction
