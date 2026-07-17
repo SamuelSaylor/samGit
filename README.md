@@ -21,15 +21,18 @@ Do I expect anyone ever to make samGit a replacement to Git? Absolutely not! I w
 
 I think I'm ready for my Programming in C class next semester, as that is meant to be when I learn what C is. 😂
 
-## Usage
+## CLI Usage
 
 Ensure you have followed compilation instructions below. This is how you'd use it with GCC, so if you have a seperate compiler ask Claude or something, or just figure it out yourself.
 
-```./samgit init``` - Initializes your repository.
-```./samgit add <filename>``` - Adds a file to path.
-```./samgit commit "Message"``` - Commit, with a message.
+```./samgit init``` - Initializes your repository.        
+```./samgit add <filename>``` - Adds a file to path.       
+```./samgit commit "Message"``` - Commit, with a message.       
 
-At the moment if you wish to decrypt the hexadecimal messages, you're going to have to do that yourself with SHA-1. I should fix that in the near future.
+*At the moment if you wish to decrypt the hexadecimal messages, you're going to have to do that yourself with SHA-1. I should fix that in the near future.*
+
+## PUSHY()
+Pushy is a quality of life function that exists functionally but primarily as a concept that allows you to stage and commit changes directly in your code once the function is called. At the moment only Python and C have support for this, but I do believe the option to install support for different languages would be interesting, so at the moment some form of an installer is the next goal. If you're reading this line, expect a Github version 1.0 release soon.
 
 ## Installation (Windows)
 
