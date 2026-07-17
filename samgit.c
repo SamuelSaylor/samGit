@@ -22,6 +22,8 @@
 #define maximum_hashes 100 //change to be number of files that commit will read
 #define maximum_files 100 //change for filenames in commit
 #define commit_message_size 1000 //change for size of your commit messages
+#define PUSHY(path, msg) pushy(path, msg, __LINE__, __FILE__)
+
 int init(){ //creares the folders i need and whatnot
     const char *samgit = ".samgit";
     const char *objects = ".samgit/objects";
@@ -301,7 +303,56 @@ int commit(const char *message){
     return 0;
 }
 
+/*
+pushy is a quality of life update taht allows you to commit changes as a function in your code
+
+if somebody at one point called samgit.pushy(), the active file would be staged, and ALL STAGED CHANGES will be committed.
+*/
+int pushy(const char *file_path, const char *message, int line, const char *called_from) {
+
+    int random_key = (rand() % (99999999 - 10000000 + 1)) + 10000000; //Randomizing name for file so no nerd tries to step in and be like "erm your program wiped my files because samgit_temp.c already existed lol!"
+    char random_key_name[50];
+    snprintf(random_key_name, sizeof(random_key_name), "%d.c", random_key);
+
+    FILE *og = fopen(called_from, "r");
+    FILE *temp = fopen(random_key_name, "w"); //to be closed after overwrite
+    if (og == NULL || temp == NULL) {
+        printf("Samgit pushy() failed, either file \"%s\" does not exist, file editing permissions are missing, or there was not enough space to create a temporary file.",called_from);
+        return 1; 
+    }
+
+    char buffer[1024];
+    int line_cnt = 1; // line conuter
+
+    while(fgets(buffer,sizeof(buffer),og) != NULL){
+        if (line_cnt != line){fputs(buffer,temp);}
+        line_cnt++;
+    }
+
+    fclose(og);
+    fclose(temp);
+
+    if (remove(called_from) != 0) {
+        printf("samgit pushy() failed to remove original file.\n");
+        return 1;
+    }
+
+    if (rename(random_key_name, called_from) != 0) {
+        printf("samgit pushy() failed to rename temp file, original file may be lost!\n");
+        return 1;
+    }
+
+    add(file_path);
+    commit(message);
+
+    printf("samgit pushy() success.\nFile: %s\nCommit message: %s",called_from,message);
+    return 0;
+}
+
+//doubles as the CLI tool
 int main(int argc, char *argv[]){
+    srand(time(NULL)); //for the rand() comand
+
     if(argc<2){
         printf("Usage: %s <command>\n", argv[0]);
         return 1;
