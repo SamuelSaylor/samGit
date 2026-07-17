@@ -372,6 +372,12 @@ int main(int argc, char *argv[]){
         return commit(argv[2]);
     }
 
+    //pushy only exists in the CLi so other languages can call on it. nobody thinks you should use "pushy" in the terminal
+    if(strcmp(argv[1],"pushy")==0){
+        if(argc < 5){fprintf(stderr,"Usage: %s pushy <file_path> <message> <line> <called_from>\n", argv[0]); return 1;}
+        return pushy(argv[2], argv[3], atoi(argv[4]), argv[5]);
+    }
+
     printf("Unkown command: %s\n",argv[1]);
     return 0;
 }
