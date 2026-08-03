@@ -24,6 +24,69 @@
 #define commit_message_size 1000 //change for size of your commit messages
 #define PUSHY(path, msg) pushy(path, msg, __LINE__, __FILE__)
 
+int write_object(const char *type, const unsigned char *body, size_t body_size, char *out_hex) {
+    char header[64];
+    int header_size = sprintf(header, "%s %zu", type, body_size) + 1;
+    size_t total_size = body_size + header_size;
+
+    char *totalsize = malloc(total_size);
+    if (totalsize == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        return 1;
+    }
+
+    memcpy(totalsize, header, header_size);
+    memcpy(totalsize + header_size, body, body_size);
+
+    //fun fact this SHA1 hash generates the 7 digit string attached to all your github uploads, its a shortened version of a 40 character hex
+    unsigned char hash[SHA_DIGEST_LENGTH];
+    SHA1((unsigned char*)totalsize, total_size, hash);
+
+    for (int i = 0; i < SHA_DIGEST_LENGTH; i++) { sprintf(out_hex + i*2, "%02x", hash[i]); }
+    out_hex[40] = '\0';
+
+    //first two characters in hexidecimal is folder location
+    //the next few th is the filename
+    char folder[3];
+    char filename[39];
+
+    strncpy(folder, out_hex, 2); folder[2] = '\0';
+    strncpy(filename, out_hex + 2, 38); filename[38] = '\0';
+
+    char folder_path[256];
+    char object_path[256];
+
+    sprintf(folder_path, ".samgit/objects/%s", folder);
+    sprintf(object_path, ".samgit/objects/%s/%s", folder, filename);
+
+    create_folder(folder_path);
+
+    uLongf compressed_size = compressBound(total_size);
+    char *compressed = malloc(compressed_size);
+    if (compressed == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        free(totalsize);
+        return 1;
+    }
+
+    compress((Bytef*)compressed, &compressed_size, (Bytef*)totalsize, total_size);
+
+    FILE *ret = fopen(object_path, "wb");
+    if (ret == NULL) {
+        fprintf(stderr, "Failed to write object to %s\n", object_path);
+        free(totalsize);
+        free(compressed);
+        return 1;
+    }
+    fwrite(compressed, 1, compressed_size, ret);
+    fclose(ret);
+
+    free(totalsize);
+    free(compressed);
+
+    return 0;
+}
+
 int init(){ //creares the folders i need and whatnot
     const char *samgit = ".samgit";
     const char *objects = ".samgit/objects";
@@ -76,68 +139,23 @@ int add(const char *filepath) {
         return 1;
     }
     buffer[bytesInBuffer] = '\0'; //adding a null temrinator
+    fclose(file);
     /////////////////////////////////////////////////////////
 
     //header format = blob + size_in_bytes + \0
     //blobs basically contain data from a file without getting outside info like location and other metrics
 
-    char header[64];
-    int header_size = sprintf(header, "blob %zu",bytesInBuffer)+1;
-    size_t total_size = bytesInBuffer+header_size;
-
-    char *totalsize = malloc(total_size);
-
-    if(totalsize == NULL){
-        fprintf(stderr,"Memory allocation failed");
+    char hex[41];
+    if (write_object("blob", (unsigned char*)buffer, bytesInBuffer, hex) != 0) {
         free(buffer);
-        fclose(file);
         return 1;
     }
 
-    memcpy(totalsize,header,header_size);
-    memcpy(totalsize+header_size, buffer,bytesInBuffer);
-
-    /////////////////////////////////////////////////////////
-
-    //fun fact this SHA1 hash generates the 7 digit string attached to all your github uploads, its a shortened version of a 40 character hex
-    unsigned char hash[SHA_DIGEST_LENGTH];
-    SHA1((unsigned char*)totalsize,total_size,hash);
-
-    char hex[41];//41 for th null poitner part, %02x is for hexidecimal form
-    for(int i = 0; i<SHA_DIGEST_LENGTH;i++){sprintf(hex+i*2,"%02x",hash[i]);}
-    hex[40] = '\0';
-
-    //first two characters in hexidecimal is folder location
-    //the next few th is the filename
-    char folder[3]; 
-    char filename[39];
-
-    strncpy(folder,hex,2); folder[2] = '\0';
-    strncpy(filename,hex+2,38); filename[38] = '\0';
-
-    char folder_Path[256];
-    char object_path[256];
-
-    sprintf(folder_Path,".samgit/objects/%s",folder);
-    sprintf(object_path,".samgit/objects/%s/%s",folder,filename);
-
-    create_folder(folder_Path);
-
-    uLongf compressed_size = compressBound(total_size);
-    char *compressed = malloc(compressed_size);
-    compress((Bytef*)compressed, &compressed_size, (Bytef*)totalsize, total_size);
-    
-    FILE *ret = fopen(object_path,"wb");
-    fwrite(compressed,1,compressed_size,ret);
-    fclose(ret);
-    
     FILE *index = fopen(".samgit/index", "a");
     fprintf(index, "%s %s\n", hex, filepath);
     fclose(index);
 
     free(buffer);
-    free(totalsize);
-    free(compressed);
 
     printf("File added.");
 
@@ -188,48 +206,12 @@ int commit(const char *message){
         offset+=20;
     }
 
-    char tree_header[64];
-    int header_size = sprintf(tree_header, "tree %zu", tree_size) + 1;
-    size_t total_size = tree_size+header_size;
-
-    char *totalsize = malloc(total_size);
-
-    if(totalsize == NULL){
-        fprintf(stderr,"Memory allocation failed");
+    char hex[41];
+    if (write_object("tree", (unsigned char*)tree_body, tree_size, hex) != 0) {
+        free(tree_body);
         return 1;
     }
-
-    memcpy(totalsize,tree_header,header_size);
-    memcpy(totalsize + header_size, tree_body, tree_size);
-
-    unsigned char hash[SHA_DIGEST_LENGTH];
-    SHA1((unsigned char*)totalsize,total_size,hash);
-
-    char hex[41];
-    for(int i = 0; i<SHA_DIGEST_LENGTH;i++){sprintf(hex+i*2,"%02x",hash[i]);}
-    hex[40] = '\0';
-
-    char folder[3]; 
-    char filename[39];
-
-    strncpy(folder,hex,2); folder[2] = '\0';
-    strncpy(filename,hex+2,38); filename[38] = '\0';
-
-    char folder_Path[256];
-    char object_path[256];
-
-    sprintf(folder_Path,".samgit/objects/%s",folder);
-    sprintf(object_path,".samgit/objects/%s/%s",folder,filename);
-
-    create_folder(folder_Path);
-
-    uLongf compressed_size = compressBound(total_size);
-    char *compressed = malloc(compressed_size);
-    compress((Bytef*)compressed, &compressed_size, (Bytef*)totalsize, total_size);
-
-    FILE *ret = fopen(object_path,"wb");
-    fwrite(compressed,1,compressed_size,ret);
-    fclose(ret);
+    free(tree_body);
 
     FILE *samgitmain = fopen(".samgit/refs/heads/main","r");
     char parenthash[41];
@@ -248,49 +230,12 @@ int commit(const char *message){
     } else {
         sprintf(commit_content,"tree %s\nauthor %s <%s> %ld +0000\ncommitter %s <%s> %ld +0000\n\n%s\n",hex, USERNAME, EMAIL, timestamp, USERNAME, EMAIL, timestamp, message);}
 
-    
     size_t commit_size = strlen(commit_content); //reusing code again lol
-    char commit_header[64];
-    int commit_header_size = sprintf(commit_header, "commit %zu", commit_size) + 1;
-    size_t commit_total_size = commit_size + commit_header_size;
-
-    char *commit_total = malloc(commit_total_size);
-    if(commit_total == NULL){ fprintf(stderr, "Memory allocation failed\n"); return 1; }
-
-    memcpy(commit_total, commit_header, commit_header_size);
-    memcpy(commit_total + commit_header_size, commit_content, commit_size);
-
-    unsigned char commit_hash[SHA_DIGEST_LENGTH];
-    SHA1((unsigned char*)commit_total, commit_total_size, commit_hash);
 
     char commit_hex[41];
-    for(int i = 0; i < SHA_DIGEST_LENGTH; i++){sprintf(commit_hex + i*2, "%02x", commit_hash[i]);}
-    commit_hex[40] = '\0';
-
-    char commit_folder[3];
-    char commit_filename[39];
-
-    strncpy(commit_folder, commit_hex, 2); commit_folder[2] = '\0';
-    strncpy(commit_filename, commit_hex + 2, 38); commit_filename[38] = '\0';
-
-    char commit_folder_path[256];
-    char commit_object_path[256];
-
-    sprintf(commit_folder_path, ".samgit/objects/%s", commit_folder);
-    sprintf(commit_object_path, ".samgit/objects/%s/%s", commit_folder, commit_filename);
-
-    create_folder(commit_folder_path);
-
-    uLongf commit_compressed_size = compressBound(commit_total_size);
-    char *commit_compressed = malloc(commit_compressed_size);
-    compress((Bytef*)commit_compressed, &commit_compressed_size, (Bytef*)commit_total, commit_total_size);
-
-    FILE *commit_file = fopen(commit_object_path, "wb");
-    fwrite(commit_compressed, 1, commit_compressed_size, commit_file);
-    fclose(commit_file);
-
-    free(commit_total);
-    free(commit_compressed);
+    if (write_object("commit", (unsigned char*)commit_content, commit_size, commit_hex) != 0) {
+        return 1;
+    }
 
     FILE *update_head = fopen(".samgit/refs/heads/main", "w");
     fprintf(update_head, "%s\n", commit_hex);
