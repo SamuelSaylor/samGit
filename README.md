@@ -96,3 +96,5 @@ You should see `-lssl -lcrypto` and `-lz` respectively.
 **OpenSSL** - SHA-1 hashing via `<openssl/sha.h>` (https://www.openssl.org)
 
 **zlib** - Object compression via `<zlib.h>` (https://zlib.net)
+
+**libcurl** - Library for receiving GitHub data for installer via `<curl/curl.h>` (https://curl.se/libcurl/c/)
